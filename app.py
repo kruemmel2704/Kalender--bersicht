@@ -38,7 +38,7 @@ if SPOTIPY_CLIENT_ID and SPOTIPY_CLIENT_SECRET:
         client_id=SPOTIPY_CLIENT_ID,
         client_secret=SPOTIPY_CLIENT_SECRET,
         redirect_uri=SPOTIPY_REDIRECT_URI,
-        scope="user-read-currently-playing user-read-playback-state",
+        scope="user-read-currently-playing user-read-playback-state user-modify-playback-state",
         cache_path=".spotifycache",
         open_browser=False
     )
@@ -216,24 +216,63 @@ def spotify_api():
             return jsonify({"is_playing": False, "auth_required": True})
         
         sp = spotipy.Spotify(auth=token_info['access_token'])
-        current_track = sp.current_user_playing_track()
+        current_playback = sp.current_playback()
         
-        if current_track is not None and current_track.get('is_playing'):
-            track_name = current_track['item']['name']
-            artist_name = current_track['item']['artists'][0]['name']
-            album_img = current_track['item']['album']['images'][0]['url'] if current_track['item']['album']['images'] else ""
+        if current_playback is not None and current_playback.get('is_playing'):
+            item = current_playback.get('item')
+            if not item:
+                return jsonify({"is_playing": False})
+                
+            track_name = item['name']
+            artist_name = item['artists'][0]['name']
+            album_img = item['album']['images'][0]['url'] if item['album']['images'] else ""
+            volume = current_playback.get('device', {}).get('volume_percent', 50)
             
             return jsonify({
                 "is_playing": True,
                 "track": track_name,
                 "artist": artist_name,
-                "image": album_img
+                "image": album_img,
+                "volume": volume
             })
         else:
             return jsonify({"is_playing": False})
     except Exception as e:
         print("Spotify Error:", e)
         return jsonify({"is_playing": False, "error": str(e)})
+
+@app.route("/api/spotify/next", methods=["POST"])
+def spotify_next():
+    if not sp_oauth:
+        return jsonify({"error": "Not configured"}), 400
+    try:
+        token_info = sp_oauth.get_cached_token()
+        if not token_info:
+            return jsonify({"error": "Not authenticated"}), 401
+        
+        sp = spotipy.Spotify(auth=token_info['access_token'])
+        sp.next_track()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/spotify/volume", methods=["POST"])
+def spotify_volume():
+    if not sp_oauth:
+        return jsonify({"error": "Not configured"}), 400
+    try:
+        token_info = sp_oauth.get_cached_token()
+        if not token_info:
+            return jsonify({"error": "Not authenticated"}), 401
+            
+        data = request.json
+        volume = data.get('volume', 50)
+        
+        sp = spotipy.Spotify(auth=token_info['access_token'])
+        sp.volume(volume)
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/api/events")
 def get_events():
