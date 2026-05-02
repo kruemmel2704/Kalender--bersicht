@@ -99,28 +99,14 @@
         .events-list {
             display: flex;
             flex-direction: row;
-            gap: 1.5rem;
-            overflow-x: auto;
+            gap: 1rem;
+            width: 100%;
             padding-bottom: 1rem;
         }
 
-        .events-list::-webkit-scrollbar {
-            height: 8px;
-        }
-        .events-list::-webkit-scrollbar-track {
-            background: var(--bg-color);
-            border-radius: 4px;
-        }
-        .events-list::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 4px;
-        }
-        .events-list::-webkit-scrollbar-thumb:hover {
-            background: #475569;
-        }
-
         .day-column {
-            flex: 0 0 320px;
+            flex: 1;
+            min-width: 0;
             display: flex;
             flex-direction: column;
             gap: 1rem;
@@ -132,7 +118,7 @@
         }
 
         .day-header {
-            font-size: 1.5rem;
+            font-size: 1.25rem;
             font-weight: 600;
             color: #e2e8f0;
             margin-top: 0;
@@ -142,6 +128,7 @@
             top: 0;
             background-color: var(--bg-color);
             z-index: 10;
+            word-wrap: break-word;
         }
 
         .day-header.past-day {
@@ -507,53 +494,78 @@
                         weekBdayContainer.classList.add('hidden');
                     }
 
-                    if (!data.events || data.events.length === 0) {
-                        const noEventsHtml = '<div class="no-events">Keine Termine für diese Woche. Genieße die Zeit!</div>';
-                        if (container.dataset.lastHtml !== noEventsHtml) {
-                            container.innerHTML = noEventsHtml;
-                            container.dataset.lastHtml = noEventsHtml;
+                    // Generate the next 5 days
+                    const days = [];
+                    const today = new Date();
+                    const dayNames = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
+                    
+                    for (let i = 0; i < 5; i++) {
+                        const d = new Date(today);
+                        d.setDate(d.getDate() + i);
+                        
+                        const dateStr = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.`;
+                        let displayName = dayNames[d.getDay()];
+                        
+                        if (i === 0) {
+                            displayName = "Heute";
+                        } else if (i === 1) {
+                            displayName = "Morgen";
                         }
-                        return;
+                        
+                        days.push({
+                            dateStr: dateStr,
+                            displayName: displayName,
+                            events: []
+                        });
+                    }
+
+                    // Group events by date_str
+                    if (data.events && data.events.length > 0) {
+                        data.events.forEach(event => {
+                            const dayIndex = days.findIndex(d => d.dateStr === event.date_str);
+                            if (dayIndex !== -1) {
+                                days[dayIndex].events.push(event);
+                            }
+                        });
                     }
 
                     let html = '';
-                    let currentDay = null;
 
-                    data.events.forEach(event => {
-                        // Insert day header when day changes
-                        if (currentDay !== event.date_str) {
-                            if (currentDay !== null) {
-                                html += `</div>`; // Close previous column
-                            }
-                            currentDay = event.date_str;
-                            const isPast = event.is_past_day ? 'past-day' : '';
-                            const dayTitle = event.is_past_day ? `${event.day_name}, ${event.date_str} (Abgelaufen)` : `${event.day_name}, ${event.date_str}`;
-                            
-                            html += `<div class="day-column ${isPast}">`;
-                            html += `<div class="day-header ${isPast}">${dayTitle}</div>`;
-                        }
+                    days.forEach(day => {
+                        html += `<div class="day-column">`;
+                        html += `<div class="day-header">${day.displayName}, ${day.dateStr}</div>`;
 
-                        const cardClass = 'event-card';
-                        
-                        let assigneeHtml = '';
-                        if (event.assignee) {
-                            assigneeHtml = `<div class="event-assignee">wird erledigt von: ${event.assignee}</div>`;
-                        }
-                        
-                        html += `
-                            <div class="${cardClass}">
-                                <div class="event-time">${event.time_str}</div>
-                                <div class="event-details">
-                                    <div class="event-title">${event.summary}</div>
-                                    ${assigneeHtml}
+                        if (day.events.length === 0) {
+                            html += `
+                                <div class="event-card" style="justify-content: center; opacity: 0.7; border: 1px dashed var(--border);">
+                                    <div class="event-details" style="align-items: center; text-align: center;">
+                                        <div class="event-title" style="color: #94a3b8; font-size: 1rem;">Keine Termine</div>
+                                    </div>
                                 </div>
-                            </div>
-                        `;
+                            `;
+                        } else {
+                            day.events.forEach(event => {
+                                const cardClass = 'event-card';
+                                
+                                let assigneeHtml = '';
+                                if (event.assignee) {
+                                    assigneeHtml = `<div class="event-assignee">wird erledigt von: ${event.assignee}</div>`;
+                                }
+                                
+                                html += `
+                                    <div class="${cardClass}">
+                                        <div class="event-time">${event.time_str}</div>
+                                        <div class="event-details">
+                                            <div class="event-title">${event.summary}</div>
+                                            ${assigneeHtml}
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                        }
+                        
+                        html += `</div>`; // Close day-column
                     });
-                    
-                    if (currentDay !== null) {
-                        html += `</div>`; // Close the last column
-                    }
                     
                     // Only update DOM if HTML changed to prevent flickering
                     if (container.dataset.lastHtml !== html) {
