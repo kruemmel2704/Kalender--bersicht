@@ -271,6 +271,7 @@
             bottom: 0;
             left: 0;
             width: 100%;
+            box-sizing: border-box;
             background-color: var(--card-bg);
             border-top: 1px solid var(--border);
             padding: 1rem 2rem;
@@ -390,6 +391,124 @@
             background: #1DB954;
             cursor: pointer;
         }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-content {
+            background-color: var(--bg-color);
+            width: 90%;
+            max-width: 1000px;
+            height: 80vh;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        .close-modal {
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
+            font-size: 2.5rem;
+            color: #94a3b8;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+        .close-modal:hover { color: #fff; }
+        .playlists-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1.5rem;
+            overflow-y: auto;
+            padding-right: 1rem;
+            margin-top: 1.5rem;
+        }
+        .playlist-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .playlist-card:hover {
+            border-color: #1DB954;
+            transform: translateY(-4px);
+        }
+        .playlist-image {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+        }
+        .playlist-name {
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .playlist-owner {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-top: 0.25rem;
+        }
+
+        /* Floating Action Button (FAB) */
+        .spotify-fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            z-index: 900;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .spotify-fab:hover {
+            transform: translateY(-4px) scale(1.05);
+            border-color: #1DB954;
+            box-shadow: 0 15px 30px -5px rgba(29, 185, 84, 0.3);
+        }
+        .spotify-fab.hidden {
+            transform: scale(0);
+            opacity: 0;
+            pointer-events: none;
+        }
+        .spotify-logo-fab {
+            width: 32px;
+            height: 32px;
+            fill: #1DB954;
+        }
     </style>
 </head>
 <body>
@@ -436,11 +555,26 @@
             </div>
             
             <div class="spotify-controls">
-                <a href="/playlists" class="skip-btn" title="Playlists durchsuchen">
+                <a href="https://open.spotify.com" target="_blank" class="skip-btn" title="Webplayer öffnen">
+                    <svg class="skip-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/>
+                    </svg>
+                </a>
+                <button class="skip-btn" onclick="openPlaylistsModal()" title="Playlists durchsuchen">
                     <svg class="skip-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path d="M3 10h11v2H3v-2zm0-4h11v2H3V6zm0 8h7v2H3v-2zm13-8v8h-2V6h2zm2-2c1.1 0 2 .9 2 2v10c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2h13zM5 18h14V6H5v12z"/>
                     </svg>
-                </a>
+                </button>
+                <button class="skip-btn" onclick="prevSpotify()" title="Vorheriger Titel">
+                    <svg class="skip-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
+                    </svg>
+                </button>
+                <button class="skip-btn" onclick="togglePlaySpotify()" title="Play/Pause">
+                    <svg class="skip-icon" id="play-pause-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8 5v14l11-7z"/> <!-- Default Play -->
+                    </svg>
+                </button>
                 <button class="skip-btn" onclick="skipSpotify()" title="Nächster Titel">
                     <svg class="skip-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
@@ -456,7 +590,67 @@
         </div>
     </div>
 
+    <!-- Playlists Modal -->
+    <div class="modal-overlay" id="playlists-modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closePlaylistsModal()">&times;</button>
+            <h2 style="margin-top: 0;">Spotify Playlists</h2>
+            <div style="display: flex; gap: 1rem;">
+                <input type="text" id="playlist-search" style="flex-grow: 1; padding: 1rem; border-radius: 999px; border: 1px solid var(--border); background: var(--card-bg); color: white; font-size: 1.1rem; outline: none;" placeholder="Nach Spotify Playlists suchen..." onkeypress="if(event.key === 'Enter') searchPlaylists()">
+                <button onclick="searchPlaylists()" style="padding: 0 2rem; background: #1DB954; color: black; border: none; border-radius: 999px; cursor: pointer; font-weight: bold; font-size: 1.1rem;">Suchen</button>
+            </div>
+            <div class="playlists-grid" id="playlists-grid">
+                <div style="grid-column: 1/-1; text-align: center; color: #94a3b8; padding: 2rem;">Lade Playlists...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <button id="spotify-fab" class="spotify-fab hidden" onclick="openPlaylistsModal()" title="Spotify Playlists öffnen">
+        <svg class="spotify-logo-fab" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.84.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.56.3z"/>
+        </svg>
+    </button>
+
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
     <script>
+        let spotifyPlayer = null;
+        let localDeviceId = null;
+
+        window.onSpotifyWebPlaybackSDKReady = () => {
+            spotifyPlayer = new Spotify.Player({
+                name: 'Kalender Web Player',
+                getOAuthToken: cb => {
+                    fetch('/api/spotify/token')
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.token) {
+                                cb(data.token);
+                            }
+                        })
+                        .catch(err => console.error("Error fetching token:", err));
+                },
+                volume: 0.5
+            });
+
+            spotifyPlayer.addListener('ready', ({ device_id }) => {
+                console.log('Ready with Device ID', device_id);
+                localDeviceId = device_id;
+            });
+
+            spotifyPlayer.addListener('not_ready', ({ device_id }) => {
+                console.log('Device ID has gone offline', device_id);
+                localDeviceId = null;
+            });
+
+            // Error Listeners
+            spotifyPlayer.addListener('initialization_error', ({ message }) => { console.error('Init Error:', message); });
+            spotifyPlayer.addListener('authentication_error', ({ message }) => { console.error('Auth Error:', message); });
+            spotifyPlayer.addListener('account_error', ({ message }) => { console.error('Account Error:', message); });
+            spotifyPlayer.addListener('playback_error', ({ message }) => { console.error('Playback Error:', message); });
+
+            spotifyPlayer.connect();
+        };
         // Update live clock
         function updateClock() {
             const now = new Date();
@@ -596,12 +790,30 @@
         updateEvents(); // Initial fetch
 
         // Spotify API functions
+        function prevSpotify() {
+            fetch('/api/spotify/previous', { method: 'POST' })
+                .then(() => setTimeout(updateSpotify, 500));
+        }
+
         function skipSpotify() {
             fetch('/api/spotify/next', { method: 'POST' })
                 .then(() => setTimeout(updateSpotify, 500));
         }
 
+        function togglePlaySpotify() {
+            fetch('/api/spotify/play_pause', { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ device_id: localDeviceId })
+            }).then(() => setTimeout(updateSpotify, 500));
+        }
+
         function changeSpotifyVolume(val) {
+            if (spotifyPlayer) {
+                spotifyPlayer.setVolume(val / 100).then(() => {
+                    console.log('Volume updated!');
+                });
+            }
             fetch('/api/spotify/volume', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -610,6 +822,8 @@
         }
 
         // Spotify Polling
+        let wasAuthRequired = false;
+
         function updateSpotify() {
             fetch('/api/spotify')
                 .then(response => response.json())
@@ -617,30 +831,108 @@
                     const footer = document.getElementById('spotify-footer');
                     const authContainer = document.getElementById('spotify-auth-container');
                     const playContainer = document.getElementById('spotify-play-container');
+                    const fab = document.getElementById('spotify-fab');
                     
                     if (data.auth_required) {
+                        wasAuthRequired = true;
                         authContainer.style.display = 'block';
                         playContainer.style.display = 'none';
                         footer.classList.add('visible');
-                    } else if (data.is_playing) {
-                        authContainer.style.display = 'none';
-                        playContainer.style.display = 'flex';
-                        
-                        document.getElementById('spotify-art').src = data.image;
-                        document.getElementById('spotify-track').textContent = data.track;
-                        document.getElementById('spotify-artist').textContent = data.artist;
-                        
-                        const slider = document.getElementById('spotify-volume');
-                        if (document.activeElement !== slider) {
-                            slider.value = data.volume;
-                        }
-                        
-                        footer.classList.add('visible');
+                        if(fab) fab.classList.add('hidden');
                     } else {
-                        footer.classList.remove('visible');
+                        // If we were previously unauthenticated but now we are, reload the page
+                        // so the Web Playback SDK can initialize properly with the new token.
+                        if (wasAuthRequired) {
+                            window.location.reload();
+                            return;
+                        }
+
+                        // Even if not playing, if auth exists, we might want to show footer to allow play
+                        // For now, if data.track exists, show it.
+                        if (data.track) {
+                            authContainer.style.display = 'none';
+                            playContainer.style.display = 'flex';
+                            document.getElementById('spotify-art').src = data.image;
+                            document.getElementById('spotify-track').textContent = data.track;
+                            document.getElementById('spotify-artist').textContent = data.artist;
+                            
+                            const slider = document.getElementById('spotify-volume');
+                            if (document.activeElement !== slider) {
+                                slider.value = data.volume;
+                            }
+                            
+                            const playIcon = document.getElementById('play-pause-icon');
+                            if (playIcon) {
+                                playIcon.innerHTML = data.is_playing ? '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>' : '<path d="M8 5v14l11-7z"/>';
+                            }
+                            
+                            footer.classList.add('visible');
+                            if(fab) fab.classList.add('hidden');
+                        } else {
+                            footer.classList.remove('visible');
+                            if(fab) fab.classList.remove('hidden');
+                        }
                     }
                 })
                 .catch(err => console.error('Spotify fetch error:', err));
+        }
+
+        // Modal Functions
+        function openPlaylistsModal() {
+            document.getElementById('playlists-modal').classList.add('active');
+            searchPlaylists('');
+        }
+
+        function closePlaylistsModal() {
+            document.getElementById('playlists-modal').classList.remove('active');
+        }
+
+        function searchPlaylists() {
+            const query = document.getElementById('playlist-search').value;
+            const grid = document.getElementById('playlists-grid');
+            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #94a3b8;">Lade...</div>';
+            
+            fetch('/api/spotify/playlists?q=' + encodeURIComponent(query))
+                .then(res => res.json())
+                .then(data => {
+                    if (data.playlists && data.playlists.length > 0) {
+                        grid.innerHTML = '';
+                        data.playlists.forEach(pl => {
+                            if (!pl) return;
+                            const imgUrl = (pl.images && pl.images.length > 0) ? pl.images[0].url : 'https://via.placeholder.com/200';
+                            const ownerName = pl.owner ? pl.owner.display_name : 'Unbekannt';
+                            grid.innerHTML += `
+                                <div class="playlist-card" onclick="playPlaylist('${pl.uri}')">
+                                    <img src="${imgUrl}" alt="Cover" class="playlist-image">
+                                    <div class="playlist-name">${pl.name}</div>
+                                    <div class="playlist-owner">Von ${ownerName}</div>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #94a3b8;">Keine Playlists gefunden.</div>';
+                    }
+                })
+                .catch(err => {
+                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #ef4444;">Fehler beim Laden.</div>';
+                });
+        }
+
+        function playPlaylist(uri) {
+            fetch('/api/spotify/play_playlist', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ uri: uri, device_id: localDeviceId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    closePlaylistsModal();
+                    setTimeout(updateSpotify, 1000);
+                } else {
+                    alert('Fehler beim Abspielen: ' + data.error);
+                }
+            });
         }
 
         // Check Spotify every 5 seconds
