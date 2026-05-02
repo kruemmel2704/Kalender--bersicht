@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify Playlists</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #102a4e;
+            --text-color: #ffffff;
+            --card-bg: #1a365d;
+            --accent: #1DB954; /* Spotify Green */
+            --accent-hover: #1ed760;
+            --border: #2a4365;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .header-area {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .back-btn {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            text-decoration: none;
+            font-weight: 600;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+
+        .back-btn:hover {
+            background-color: #2a4365;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .search-input {
+            flex-grow: 1;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            color: var(--text-color);
+            padding: 1rem 1.5rem;
+            border-radius: 9999px;
+            font-size: 1.1rem;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent);
+        }
+
+        .search-btn {
+            background-color: var(--accent);
+            color: #000;
+            border: none;
+            padding: 0 2rem;
+            border-radius: 9999px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .search-btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .playlists-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .playlist-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: inherit;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .playlist-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .playlist-image {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .playlist-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .playlist-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .playlist-owner {
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 4rem;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            border: 1px dashed var(--border);
+            color: #94a3b8;
+            font-size: 1.2rem;
+            grid-column: 1 / -1;
+        }
+
+        .play-overlay {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--accent);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .playlist-card:hover .play-overlay {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .play-icon {
+            width: 20px;
+            height: 20px;
+            fill: #000;
+            margin-left: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-area">
+            <h1>
+                <svg style="width: 40px; height: 40px; fill: #1DB954;" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.84.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.56.3z"/>
+                </svg>
+                Playlists
+            </h1>
+            <a href="/" class="back-btn">Zurück zum Kalender</a>
+        </div>
+
+        <form class="search-container" method="GET" action="/playlists">
+            <input type="text" name="q" class="search-input" placeholder="Nach Spotify Playlists suchen..." value="{{ query }}">
+            <button type="submit" class="search-btn">Suchen</button>
+        </form>
+
+        <div class="playlists-grid">
+            {% if playlists %}
+                {% for playlist in playlists %}
+                {% if playlist %}
+                <div class="playlist-card" onclick="playPlaylist('{{ playlist.uri }}')">
+                    <img src="{{ playlist.images[0].url if playlist.images else 'https://via.placeholder.com/200' }}" alt="Cover" class="playlist-image">
+                    <div class="play-overlay">
+                        <svg class="play-icon" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                    </div>
+                    <div class="playlist-info">
+                        <div class="playlist-name">{{ playlist.name }}</div>
+                        <div class="playlist-owner">Von {{ playlist.owner.display_name }}</div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            {% else %}
+                <div class="no-results">
+                    Keine Playlists gefunden.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        function playPlaylist(uri) {
+            fetch('/api/spotify/play_playlist', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ uri: uri })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '/';
+                } else {
+                    alert('Fehler beim Abspielen (Ist ein Spotify Gerät aktiv?): ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ein Fehler ist aufgetreten.');
+            });
+        }
+    </script>
+</body>
+</html>
