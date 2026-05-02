@@ -605,8 +605,7 @@
 
     <script src="https://sdk.scdn.co/spotify-player.js"></script>
     <script>
-        let spotifyPlayer = null;
-        let localDeviceId = null;
+        let isStartingPlayback = false;
 
         window.onSpotifyWebPlaybackSDKReady = () => {
             spotifyPlayer = new Spotify.Player({
@@ -639,6 +638,28 @@
             spotifyPlayer.addListener('authentication_error', ({ message }) => { console.error('Auth Error:', message); });
             spotifyPlayer.addListener('account_error', ({ message }) => { console.error('Account Error:', message); });
             spotifyPlayer.addListener('playback_error', ({ message }) => { console.error('Playback Error:', message); });
+
+            spotifyPlayer.addListener('player_state_changed', state => {
+                if (!state) return;
+                
+                const currentTrack = state.track_window.current_track;
+                if (currentTrack) {
+                    isStartingPlayback = false; // Reset loading state
+                    
+                    const trackName = currentTrack.name;
+                    const artistName = currentTrack.artists.map(a => a.name).join(', ');
+                    const albumArt = currentTrack.album.images[0].url;
+                    const isPlaying = !state.paused;
+                    
+                    updateSpotifyUI({
+                        track: trackName,
+                        artist: artistName,
+                        image: albumArt,
+                        is_playing: isPlaying,
+                        volume: null // Volume not in state object usually
+                    });
+                }
+            });
 
             spotifyPlayer.connect();
         };
@@ -815,54 +836,64 @@
         // Spotify Polling
         let wasAuthRequired = false;
 
+        function updateSpotifyUI(data) {
+            const footer = document.getElementById('spotify-footer');
+            const authContainer = document.getElementById('spotify-auth-container');
+            const playContainer = document.getElementById('spotify-play-container');
+            const fab = document.getElementById('spotify-fab');
+
+            if (data.track) {
+                isStartingPlayback = false;
+                authContainer.style.display = 'none';
+                playContainer.style.display = 'flex';
+                document.getElementById('spotify-art').src = data.image;
+                document.getElementById('spotify-track').textContent = data.track;
+                document.getElementById('spotify-artist').textContent = data.artist;
+                
+                const slider = document.getElementById('spotify-volume');
+                if (data.volume !== null && document.activeElement !== slider) {
+                    slider.value = data.volume;
+                }
+                
+                const playIcon = document.getElementById('play-pause-icon');
+                if (playIcon) {
+                    playIcon.innerHTML = data.is_playing ? '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>' : '<path d="M8 5v14l11-7z"/>';
+                }
+                
+                footer.classList.add('visible');
+                if(fab) fab.classList.add('hidden');
+            } else {
+                if (isStartingPlayback) {
+                    authContainer.style.display = 'none';
+                    playContainer.style.display = 'flex';
+                    document.getElementById('spotify-track').textContent = 'Starte Wiedergabe...';
+                    document.getElementById('spotify-artist').textContent = 'Bitte warten';
+                    document.getElementById('spotify-art').src = 'https://www.scdn.co/i/_global/twitter_card-default.jpg';
+                    footer.classList.add('visible');
+                    if(fab) fab.classList.add('hidden');
+                } else if (!footer.classList.contains('expanded')) {
+                    footer.classList.remove('visible');
+                    if(fab) fab.classList.remove('hidden');
+                }
+            }
+        }
+
         function updateSpotify() {
             fetch('/api/spotify')
                 .then(response => response.json())
                 .then(data => {
-                    const footer = document.getElementById('spotify-footer');
-                    const authContainer = document.getElementById('spotify-auth-container');
-                    const playContainer = document.getElementById('spotify-play-container');
-                    const fab = document.getElementById('spotify-fab');
-                    
                     if (data.auth_required) {
                         wasAuthRequired = true;
-                        authContainer.style.display = 'block';
-                        playContainer.style.display = 'none';
-                        footer.classList.add('visible');
-                        if(fab) fab.classList.add('hidden');
+                        document.getElementById('spotify-auth-container').style.display = 'block';
+                        document.getElementById('spotify-play-container').style.display = 'none';
+                        document.getElementById('spotify-footer').classList.add('visible');
+                        if(document.getElementById('spotify-fab')) document.getElementById('spotify-fab').classList.add('hidden');
                     } else {
-                        // If we were previously unauthenticated but now we are, reload the page
-                        // so the Web Playback SDK can initialize properly with the new token.
                         if (wasAuthRequired) {
                             window.location.reload();
                             return;
                         }
-
-                        // Even if not playing, if auth exists, we might want to show footer to allow play
-                        // For now, if data.track exists, show it.
-                        if (data.track) {
-                            authContainer.style.display = 'none';
-                            playContainer.style.display = 'flex';
-                            document.getElementById('spotify-art').src = data.image;
-                            document.getElementById('spotify-track').textContent = data.track;
-                            document.getElementById('spotify-artist').textContent = data.artist;
-                            
-                            const slider = document.getElementById('spotify-volume');
-                            if (document.activeElement !== slider) {
-                                slider.value = data.volume;
-                            }
-                            
-                            const playIcon = document.getElementById('play-pause-icon');
-                            if (playIcon) {
-                                playIcon.innerHTML = data.is_playing ? '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>' : '<path d="M8 5v14l11-7z"/>';
-                            }
-                            
-                            footer.classList.add('visible');
-                            if(fab) fab.classList.add('hidden');
-                        } else {
-                            footer.classList.remove('visible');
-                            if(fab) fab.classList.remove('hidden');
-                        }
+                        updateSpotifyUI(data);
                     }
                 })
                 .catch(err => console.error('Spotify fetch error:', err));
@@ -871,10 +902,16 @@
         // Modal Functions (now Panel Functions)
         function togglePlaylists() {
             const footer = document.getElementById('spotify-footer');
+            const fab = document.getElementById('spotify-fab');
             const isExpanded = footer.classList.toggle('expanded');
             
             if (isExpanded) {
+                footer.classList.add('visible');
+                if(fab) fab.classList.add('hidden');
                 searchPlaylists('');
+            } else {
+                // Trigger a refresh to decide if it should stay visible
+                updateSpotify();
             }
         }
 
@@ -916,6 +953,15 @@
         }
 
         function playPlaylist(uri) {
+            if (!localDeviceId) {
+                alert('Spotify Web Player ist noch nicht bereit. Bitte warte einen Moment oder lade die Seite neu.');
+                return;
+            }
+
+            isStartingPlayback = true;
+            // Force footer to stay visible during start
+            document.getElementById('spotify-footer').classList.add('visible');
+            
             fetch('/api/spotify/play_playlist', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -925,8 +971,12 @@
             .then(data => {
                 if (data.success) {
                     closePlaylistsModal();
-                    setTimeout(updateSpotify, 1000);
+                    // Longer timeout for the first update
+                    setTimeout(updateSpotify, 2500);
+                    // Safety reset after 10 seconds if still nothing
+                    setTimeout(() => { isStartingPlayback = false; }, 10000);
                 } else {
+                    isStartingPlayback = false;
                     alert('Fehler beim Abspielen: ' + data.error);
                 }
             });
