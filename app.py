@@ -38,7 +38,7 @@ if SPOTIPY_CLIENT_ID and SPOTIPY_CLIENT_SECRET:
         client_id=SPOTIPY_CLIENT_ID,
         client_secret=SPOTIPY_CLIENT_SECRET,
         redirect_uri=SPOTIPY_REDIRECT_URI,
-        scope="user-read-currently-playing user-read-playback-state user-modify-playback-state",
+        scope="user-read-currently-playing user-read-playback-state user-modify-playback-state playlist-read-private playlist-read-collaborative",
         cache_path=".spotifycache",
         open_browser=False
     )
@@ -270,6 +270,47 @@ def spotify_volume():
         
         sp = spotipy.Spotify(auth=token_info['access_token'])
         sp.volume(volume)
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/playlists")
+def playlists():
+    if not sp_oauth:
+        return "Spotify ist nicht konfiguriert."
+    try:
+        token_info = sp_oauth.get_cached_token()
+        if not token_info:
+            return redirect('/login')
+        
+        sp = spotipy.Spotify(auth=token_info['access_token'])
+        
+        query = request.args.get('q', '')
+        if query:
+            results = sp.search(q=query, type='playlist')
+            playlists_data = results['playlists']['items']
+        else:
+            results = sp.current_user_playlists()
+            playlists_data = results['items']
+            
+        return render_template("spotify_playlists.html", playlists=playlists_data, query=query)
+    except Exception as e:
+        return f"Fehler: {e}"
+
+@app.route("/api/spotify/play_playlist", methods=["POST"])
+def play_playlist():
+    if not sp_oauth:
+        return jsonify({"error": "Not configured"}), 400
+    try:
+        token_info = sp_oauth.get_cached_token()
+        if not token_info:
+            return jsonify({"error": "Not authenticated"}), 401
+            
+        data = request.json
+        playlist_uri = data.get('uri')
+        
+        sp = spotipy.Spotify(auth=token_info['access_token'])
+        sp.start_playback(context_uri=playlist_uri)
         return jsonify({"success": True})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
