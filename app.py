@@ -357,6 +357,11 @@ def play_playlist():
         device_id = data.get('device_id')
         
         sp = spotipy.Spotify(auth=token_info['access_token'])
+        try:
+            sp.shuffle(state=True, device_id=device_id)
+        except Exception as shuffle_e:
+            print(f"Shuffle Error: {shuffle_e}")
+            
         sp.start_playback(context_uri=playlist_uri, device_id=device_id)
         return jsonify({"success": True})
     except Exception as e:
