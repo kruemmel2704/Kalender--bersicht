@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wochenplan</title>
+    <!-- Modern, premium font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #102a4e;
+            --text-color: #ffffff;
+            --card-bg: #1a365d;
+            --accent: #007bb5;
+            --accent-hover: #005a87;
+            --border: #2a4365;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 2rem;
+            padding-bottom: 6rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 95vw;
+            width: 100%;
+        }
+
+        .header-area {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .logo {
+            height: 65px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 3rem;
+            color: var(--text-color);
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .date-display {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+
+        .status {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            background-color: rgba(30, 41, 59, 0.5);
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+            border: 1px solid var(--border);
+        }
+
+        .pulse {
+            width: 8px;
+            height: 8px;
+            background-color: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        .events-list {
+            display: flex;
+            flex-direction: row;
+            gap: 1.5rem;
+            overflow-x: auto;
+            padding-bottom: 1rem;
+        }
+
+        .events-list::-webkit-scrollbar {
+            height: 8px;
+        }
+        .events-list::-webkit-scrollbar-track {
+            background: var(--bg-color);
+            border-radius: 4px;
+        }
+        .events-list::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+        .events-list::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        .day-column {
+            flex: 0 0 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .day-column.past-day {
+            opacity: 0.6;
+            filter: grayscale(0.5);
+        }
+
+        .day-header {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            margin-top: 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border);
+            position: sticky;
+            top: 0;
+            background-color: var(--bg-color);
+            z-index: 10;
+        }
+
+        .day-header.past-day {
+            color: #64748b;
+            border-bottom-color: #475569;
+        }
+
+        .event-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .event-card.past-day {
+            opacity: 0.6;
+            filter: grayscale(0.5);
+        }
+
+        /* Subtle glow effect on hover */
+        .event-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, #1a365d, #007bb5);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .event-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.3);
+            border-color: #475569;
+            opacity: 1;
+            filter: grayscale(0);
+        }
+
+        .event-card:hover::before {
+            opacity: 1;
+        }
+
+        .event-time {
+            font-weight: 600;
+            color: #60a5fa;
+            font-size: 1.15rem;
+            min-width: 140px;
+        }
+
+        .past-day .event-time {
+            color: #94a3b8;
+        }
+
+        .event-details {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .event-title {
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: #e2e8f0;
+        }
+
+        .event-assignee {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            font-weight: 400;
+        }
+
+        .no-events {
+            text-align: center;
+            padding: 4rem 2rem;
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            color: #94a3b8;
+            font-size: 1.1rem;
+            border: 1px dashed var(--border);
+            margin-top: 1rem;
+        }
+
+        .current-time-indicator {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #cbd5e1;
+            background: var(--card-bg);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+
+        .birthday-banner {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #fbbf24;
+            margin-bottom: 1.5rem;
+            animation: pulse-gold 2s infinite;
+        }
+
+        @keyframes pulse-gold {
+            0% { text-shadow: 0 0 5px rgba(251, 191, 36, 0.4); }
+            50% { text-shadow: 0 0 20px rgba(251, 191, 36, 0.8); }
+            100% { text-shadow: 0 0 5px rgba(251, 191, 36, 0.4); }
+        }
+
+        .week-birthdays {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            background-color: var(--card-bg);
+            padding: 0.75rem 2rem;
+            border-radius: 9999px;
+            border: 1px solid var(--border);
+            display: inline-block;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .spotify-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: var(--card-bg);
+            border-top: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateY(100%);
+        }
+
+        .spotify-footer.visible {
+            transform: translateY(0);
+        }
+
+        .spotify-art {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .spotify-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .spotify-track {
+            font-weight: 600;
+            color: #e2e8f0;
+            font-size: 1.1rem;
+        }
+
+        .spotify-artist {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .spotify-logo {
+            width: 32px;
+            height: 32px;
+            margin-right: 1.5rem;
+            fill: #1DB954; /* Spotify green */
+        }
+        
+        .spotify-auth-btn {
+            background-color: #1DB954;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: background-color 0.2s;
+        }
+
+        .spotify-auth-btn:hover {
+            background-color: #1ed760;
+        }
+    </style>
+</head>
+<body>
+    <div class="current-time-indicator" id="clock">00:00:00</div>
+
+    <div class="container">
+        <div class="header-area">
+            <img src="{{ url_for('static', filename='logo.svg') }}" alt="CPM Logo" class="logo" onerror="this.style.display='none'">
+            <h1>Wochenplan</h1>
+        </div>
+
+        <div id="today-birthday-banner" class="birthday-banner hidden"></div>
+        
+        <div style="text-align: center;">
+            <div id="week-birthdays-container" class="week-birthdays hidden"></div>
+        </div>
+
+        <div class="date-display" id="current-date">Lade Datum...</div>
+        
+        <div class="status">
+            <div class="pulse"></div>
+            <span>Live Sync <span id="last-update"></span></span>
+        </div>
+
+        <div class="events-list" id="events-container">
+            <div class="no-events">Lade Termine...</div>
+        </div>
+    </div>
+
+    <div id="spotify-footer" class="spotify-footer">
+        <svg class="spotify-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.84.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.56.3z"/>
+        </svg>
+        <div id="spotify-content" style="display: flex; align-items: center; gap: 1rem;">
+            <!-- Rendered by JS -->
+        </div>
+    </div>
+
+    <script>
+        // Update live clock
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').textContent = now.toLocaleTimeString('de-DE');
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Set current date
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('current-date').textContent = "Heute ist " + new Date().toLocaleDateString('de-DE', options);
+
+        function updateEvents() {
+            fetch('/api/events')
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('events-container');
+                    
+                    if (data.last_update) {
+                        document.getElementById('last-update').textContent = `(Letztes Update: ${data.last_update})`;
+                    }
+
+                    // Handle today's birthday banner
+                    const todayBanner = document.getElementById('today-birthday-banner');
+                    if (data.today_birthdays && data.today_birthdays.length > 0) {
+                        const names = data.today_birthdays.join(' & ');
+                        todayBanner.textContent = `✨ Das heutige Geburtstagskind ist ${names}! ✨`;
+                        todayBanner.classList.remove('hidden');
+                    } else {
+                        todayBanner.classList.add('hidden');
+                    }
+
+                    // Handle week birthdays
+                    const weekBdayContainer = document.getElementById('week-birthdays-container');
+                    if (data.week_birthdays && data.week_birthdays.length > 0) {
+                        const bdayList = data.week_birthdays.map(b => `${b.name} (${b.day_name}, ${b.date_str})`).join(' • ');
+                        weekBdayContainer.textContent = `🎂 Geburtstage diese Woche: ${bdayList}`;
+                        weekBdayContainer.classList.remove('hidden');
+                    } else {
+                        weekBdayContainer.classList.add('hidden');
+                    }
+
+                    if (!data.events || data.events.length === 0) {
+                        const noEventsHtml = '<div class="no-events">Keine Termine für diese Woche. Genieße die Zeit!</div>';
+                        if (container.dataset.lastHtml !== noEventsHtml) {
+                            container.innerHTML = noEventsHtml;
+                            container.dataset.lastHtml = noEventsHtml;
+                        }
+                        return;
+                    }
+
+                    let html = '';
+                    let currentDay = null;
+
+                    data.events.forEach(event => {
+                        // Insert day header when day changes
+                        if (currentDay !== event.date_str) {
+                            if (currentDay !== null) {
+                                html += `</div>`; // Close previous column
+                            }
+                            currentDay = event.date_str;
+                            const isPast = event.is_past_day ? 'past-day' : '';
+                            const dayTitle = event.is_past_day ? `${event.day_name}, ${event.date_str} (Abgelaufen)` : `${event.day_name}, ${event.date_str}`;
+                            
+                            html += `<div class="day-column ${isPast}">`;
+                            html += `<div class="day-header ${isPast}">${dayTitle}</div>`;
+                        }
+
+                        const cardClass = 'event-card';
+                        
+                        let assigneeHtml = '';
+                        if (event.assignee) {
+                            assigneeHtml = `<div class="event-assignee">wird erledigt von: ${event.assignee}</div>`;
+                        }
+                        
+                        html += `
+                            <div class="${cardClass}">
+                                <div class="event-time">${event.time_str}</div>
+                                <div class="event-details">
+                                    <div class="event-title">${event.summary}</div>
+                                    ${assigneeHtml}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    if (currentDay !== null) {
+                        html += `</div>`; // Close the last column
+                    }
+                    
+                    // Only update DOM if HTML changed to prevent flickering
+                    if (container.dataset.lastHtml !== html) {
+                        const updateDOM = () => {
+                            container.innerHTML = html;
+                            container.dataset.lastHtml = html;
+                        };
+
+                        if (document.startViewTransition) {
+                            document.startViewTransition(updateDOM);
+                        } else {
+                            updateDOM();
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Fehler beim Abrufen der Termine:', error);
+                });
+        }
+
+        // Fetch events every 10 seconds to reduce load
+        setInterval(updateEvents, 10000);
+        updateEvents(); // Initial fetch
+
+        // Spotify Polling
+        function updateSpotify() {
+            fetch('/api/spotify')
+                .then(response => response.json())
+                .then(data => {
+                    const footer = document.getElementById('spotify-footer');
+                    const content = document.getElementById('spotify-content');
+                    
+                    if (data.auth_required) {
+                        content.innerHTML = `<a href="/login" class="spotify-auth-btn" target="_blank">Mit Spotify verknüpfen</a>`;
+                        footer.classList.add('visible');
+                    } else if (data.is_playing) {
+                        content.innerHTML = `
+                            <img src="${data.image}" alt="Album Art" class="spotify-art">
+                            <div class="spotify-info">
+                                <div class="spotify-track">${data.track}</div>
+                                <div class="spotify-artist">${data.artist}</div>
+                            </div>
+                        `;
+                        footer.classList.add('visible');
+                    } else {
+                        footer.classList.remove('visible');
+                    }
+                })
+                .catch(err => console.error('Spotify fetch error:', err));
+        }
+
+        // Check Spotify every 5 seconds
+        setInterval(updateSpotify, 5000);
+        updateSpotify();
+    </script>
+</body>
+</html>

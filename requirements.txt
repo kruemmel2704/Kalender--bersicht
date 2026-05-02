@@ -1,0 +1,6 @@
+Flask
+python-dotenv
+requests
+icalendar
+recurring-ical-events
+spotipy==2.23.0
