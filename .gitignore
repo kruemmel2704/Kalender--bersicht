@@ -1,3 +1,4 @@
+.spotifycache
 venv/
 __pycache__/
 *.pyc
