@@ -31,7 +31,7 @@ BIRTHDAY_ICS_URL = os.getenv("BIRTHDAY_ICS_URL")
 # Spotify Integration
 SPOTIPY_CLIENT_ID = os.getenv("SPOTIPY_CLIENT_ID")
 SPOTIPY_CLIENT_SECRET = os.getenv("SPOTIPY_CLIENT_SECRET")
-SPOTIPY_REDIRECT_URI = os.getenv("SPOTIPY_REDIRECT_URI", "http://localhost:5000/callback")
+SPOTIPY_REDIRECT_URI = os.getenv("SPOTIPY_REDIRECT_URI", "https://localhost:5000/callback")
 
 if SPOTIPY_CLIENT_ID and SPOTIPY_CLIENT_SECRET:
     sp_oauth = SpotifyOAuth(
@@ -284,4 +284,4 @@ def get_events():
     })
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5000, use_reloader=False)
+    app.run(debug=True, host="0.0.0.0", port=5000, use_reloader=False, ssl_context="adhoc")
