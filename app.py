@@ -216,20 +216,27 @@ def spotify_api():
             return jsonify({"is_playing": False, "auth_required": True})
         
         sp = spotipy.Spotify(auth=token_info['access_token'])
-        current_playback = sp.current_playback()
         
-        if current_playback is not None and current_playback.get('is_playing'):
-            item = current_playback.get('item')
-            if not item:
-                return jsonify({"is_playing": False})
-                
+        # Try current_playback first (includes device info)
+        playback = sp.current_playback()
+        
+        # Fallback to currently_playing if playback is None
+        if not playback:
+            playback = sp.currently_playing()
+            
+        if playback and playback.get('item'):
+            item = playback.get('item')
             track_name = item['name']
             artist_name = item['artists'][0]['name']
             album_img = item['album']['images'][0]['url'] if item['album']['images'] else ""
-            volume = current_playback.get('device', {}).get('volume_percent', 50)
+            
+            # device info might be missing in currently_playing fallback
+            device = playback.get('device', {})
+            volume = device.get('volume_percent', 50)
+            is_playing = playback.get('is_playing', False)
             
             return jsonify({
-                "is_playing": True,
+                "is_playing": is_playing,
                 "track": track_name,
                 "artist": artist_name,
                 "image": album_img,
@@ -238,7 +245,7 @@ def spotify_api():
         else:
             return jsonify({"is_playing": False})
     except Exception as e:
-        print("Spotify Error:", e)
+        print("Spotify API Error:", e)
         return jsonify({"is_playing": False, "error": str(e)})
 
 @app.route("/api/spotify/next", methods=["POST"])
@@ -357,11 +364,23 @@ def play_playlist():
         device_id = data.get('device_id')
         
         sp = spotipy.Spotify(auth=token_info['access_token'])
+        
+        # 1. Wake up / Transfer playback to this device
+        if device_id:
+            try:
+                sp.transfer_playback(device_id=device_id, force_play=False)
+                # Small buffer to ensure transfer is processed
+                time.sleep(0.5)
+            except Exception as transfer_e:
+                print(f"Transfer/Wakeup Error: {transfer_e}")
+
+        # 2. Set shuffle
         try:
             sp.shuffle(state=True, device_id=device_id)
         except Exception as shuffle_e:
-            print(f"Shuffle Error (might be expected if not playing): {shuffle_e}")
+            print(f"Shuffle Error: {shuffle_e}")
             
+        # 3. Start the actual playlist
         sp.start_playback(context_uri=playlist_uri, device_id=device_id)
         return jsonify({"success": True})
     except Exception as e:
