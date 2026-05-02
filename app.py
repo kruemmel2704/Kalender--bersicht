@@ -38,7 +38,7 @@ if SPOTIPY_CLIENT_ID and SPOTIPY_CLIENT_SECRET:
         client_id=SPOTIPY_CLIENT_ID,
         client_secret=SPOTIPY_CLIENT_SECRET,
         redirect_uri=SPOTIPY_REDIRECT_URI,
-        scope="user-read-currently-playing user-read-playback-state user-modify-playback-state playlist-read-private playlist-read-collaborative",
+        scope="streaming user-read-email user-read-private user-read-currently-playing user-read-playback-state user-modify-playback-state playlist-read-private playlist-read-collaborative",
         cache_path=".spotifycache",
         open_browser=False
     )
@@ -256,6 +256,52 @@ def spotify_next():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/api/spotify/previous", methods=["POST"])
+def spotify_previous():
+    if not sp_oauth:
+        return jsonify({"error": "Not configured"}), 400
+    try:
+        token_info = sp_oauth.get_cached_token()
+        if not token_info:
+            return jsonify({"error": "Not authenticated"}), 401
+        
+        sp = spotipy.Spotify(auth=token_info['access_token'])
+        sp.previous_track()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/spotify/play_pause", methods=["POST"])
+def spotify_play_pause():
+    if not sp_oauth:
+        return jsonify({"error": "Not configured"}), 400
+    try:
+        token_info = sp_oauth.get_cached_token()
+        if not token_info:
+            return jsonify({"error": "Not authenticated"}), 401
+            
+        sp = spotipy.Spotify(auth=token_info['access_token'])
+        current = sp.current_playback()
+        if current and current.get('is_playing'):
+            sp.pause_playback()
+            return jsonify({"success": True, "is_playing": False})
+        else:
+            data = request.json or {}
+            device_id = data.get('device_id')
+            sp.start_playback(device_id=device_id)
+            return jsonify({"success": True, "is_playing": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/spotify/token")
+def spotify_token():
+    if not sp_oauth:
+        return jsonify({"token": None})
+    token_info = sp_oauth.get_cached_token()
+    if not token_info:
+        return jsonify({"token": None})
+    return jsonify({"token": token_info['access_token']})
+
 @app.route("/api/spotify/volume", methods=["POST"])
 def spotify_volume():
     if not sp_oauth:
@@ -274,14 +320,14 @@ def spotify_volume():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route("/playlists")
-def playlists():
+@app.route("/api/spotify/playlists")
+def api_playlists():
     if not sp_oauth:
-        return "Spotify ist nicht konfiguriert."
+        return jsonify({"error": "Not configured"}), 400
     try:
         token_info = sp_oauth.get_cached_token()
         if not token_info:
-            return redirect('/login')
+            return jsonify({"error": "Not authenticated"}), 401
         
         sp = spotipy.Spotify(auth=token_info['access_token'])
         
@@ -293,9 +339,9 @@ def playlists():
             results = sp.current_user_playlists()
             playlists_data = results['items']
             
-        return render_template("spotify_playlists.html", playlists=playlists_data, query=query)
+        return jsonify({"playlists": playlists_data})
     except Exception as e:
-        return f"Fehler: {e}"
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/api/spotify/play_playlist", methods=["POST"])
 def play_playlist():
@@ -308,9 +354,10 @@ def play_playlist():
             
         data = request.json
         playlist_uri = data.get('uri')
+        device_id = data.get('device_id')
         
         sp = spotipy.Spotify(auth=token_info['access_token'])
-        sp.start_playback(context_uri=playlist_uri)
+        sp.start_playback(context_uri=playlist_uri, device_id=device_id)
         return jsonify({"success": True})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
