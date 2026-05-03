@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -91,9 +92,17 @@
         }
 
         @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-            70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+            0% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
         }
 
         .events-list {
@@ -245,9 +254,17 @@
         }
 
         @keyframes pulse-gold {
-            0% { text-shadow: 0 0 5px rgba(251, 191, 36, 0.4); }
-            50% { text-shadow: 0 0 20px rgba(251, 191, 36, 0.8); }
-            100% { text-shadow: 0 0 5px rgba(251, 191, 36, 0.4); }
+            0% {
+                text-shadow: 0 0 5px rgba(251, 191, 36, 0.4);
+            }
+
+            50% {
+                text-shadow: 0 0 20px rgba(251, 191, 36, 0.8);
+            }
+
+            100% {
+                text-shadow: 0 0 5px rgba(251, 191, 36, 0.4);
+            }
         }
 
         .week-birthdays {
@@ -335,9 +352,10 @@
             width: 32px;
             height: 32px;
             margin-right: 1.5rem;
-            fill: #1DB954; /* Spotify green */
+            fill: #1DB954;
+            /* Spotify green */
         }
-        
+
         .spotify-auth-btn {
             background-color: #1DB954;
             color: white;
@@ -352,6 +370,7 @@
         .spotify-auth-btn:hover {
             background-color: #1ed760;
         }
+
         .spotify-controls {
             display: flex;
             align-items: center;
@@ -429,6 +448,7 @@
             padding: 1rem 0;
             margin-top: 1.5rem;
         }
+
         .playlist-card {
             background-color: var(--card-bg);
             border: 1px solid var(--border);
@@ -438,10 +458,12 @@
             transition: all 0.2s;
             text-align: center;
         }
+
         .playlist-card:hover {
             border-color: #1DB954;
             transform: translateY(-4px);
         }
+
         .playlist-image {
             width: 100%;
             aspect-ratio: 1;
@@ -449,12 +471,14 @@
             border-radius: 8px;
             margin-bottom: 0.75rem;
         }
+
         .playlist-name {
             font-weight: 600;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
+
         .playlist-owner {
             font-size: 0.8rem;
             color: #94a3b8;
@@ -479,16 +503,19 @@
             z-index: 900;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
+
         .spotify-fab:hover {
             transform: translateY(-4px) scale(1.05);
             border-color: #1DB954;
             box-shadow: 0 15px 30px -5px rgba(29, 185, 84, 0.3);
         }
+
         .spotify-fab.hidden {
             transform: scale(0);
             opacity: 0;
             pointer-events: none;
         }
+
         .spotify-logo-fab {
             width: 32px;
             height: 32px;
@@ -496,23 +523,25 @@
         }
     </style>
 </head>
+
 <body>
     <div class="current-time-indicator" id="clock">00:00:00</div>
 
     <div class="container">
         <div class="header-area">
-            <img src="{{ url_for('static', filename='logo.svg') }}" alt="CPM Logo" class="logo" onerror="this.style.display='none'">
+            <img src="{{ url_for('static', filename='logo.svg') }}" alt="CPM Logo" class="logo"
+                onerror="this.style.display='none'">
             <h1>Wochenplan</h1>
         </div>
 
         <div id="today-birthday-banner" class="birthday-banner hidden"></div>
-        
+
         <div style="text-align: center;">
             <div id="week-birthdays-container" class="week-birthdays hidden"></div>
         </div>
 
         <div class="date-display" id="current-date">Lade Datum...</div>
-        
+
         <div class="status">
             <div class="pulse"></div>
             <span>Live Sync <span id="last-update"></span></span>
@@ -526,9 +555,10 @@
     <div id="spotify-footer" class="spotify-footer">
         <div class="footer-main-row">
             <svg class="spotify-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.84.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.56.3z"/>
+                <path
+                    d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.84.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.56.3z" />
             </svg>
-            
+
             <div id="spotify-auth-container" style="display: none;">
                 <a href="/login" class="spotify-auth-btn" target="_blank">Mit Spotify verknüpfen</a>
             </div>
@@ -539,38 +569,38 @@
                     <div id="spotify-track" class="spotify-track"></div>
                     <div id="spotify-artist" class="spotify-artist"></div>
                 </div>
-                
+
                 <div class="spotify-controls">
-                    <a href="https://open.spotify.com" target="_blank" class="skip-btn" title="Webplayer öffnen">
-                        <svg class="skip-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/>
-                        </svg>
-                    </a>
                     <button class="skip-btn" onclick="togglePlaylists()" title="Playlists durchsuchen">
-                        <svg class="skip-icon" id="playlist-toggle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M3 10h11v2H3v-2zm0-4h11v2H3V6zm0 8h7v2H3v-2zm13-8v8h-2V6h2zm2-2c1.1 0 2 .9 2 2v10c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2h13zM5 18h14V6H5v12z"/>
+                        <svg class="skip-icon" id="playlist-toggle-icon" viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M3 10h11v2H3v-2zm0-4h11v2H3V6zm0 8h7v2H3v-2zm13-8v8h-2V6h2zm2-2c1.1 0 2 .9 2 2v10c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2h13zM5 18h14V6H5v12z" />
                         </svg>
                     </button>
                     <button class="skip-btn" onclick="prevSpotify()" title="Vorheriger Titel">
                         <svg class="skip-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
+                            <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
                         </svg>
                     </button>
                     <button class="skip-btn" onclick="togglePlaySpotify()" title="Play/Pause">
-                        <svg class="skip-icon" id="play-pause-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M8 5v14l11-7z"/> <!-- Default Play -->
+                        <svg class="skip-icon" id="play-pause-icon" viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8 5v14l11-7z" /> <!-- Default Play -->
                         </svg>
                     </button>
                     <button class="skip-btn" onclick="skipSpotify()" title="Nächster Titel">
                         <svg class="skip-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+                            <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
                         </svg>
                     </button>
                     <div class="volume-container">
                         <svg class="volume-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                            <path
+                                d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
                         </svg>
-                        <input type="range" id="spotify-volume" class="volume-slider" min="0" max="100" value="50" onchange="changeSpotifyVolume(this.value)">
+                        <input type="range" id="spotify-volume" class="volume-slider" min="0" max="100" value="50"
+                            onchange="changeSpotifyVolume(this.value)">
                     </div>
                 </div>
             </div>
@@ -581,16 +611,21 @@
                 <h2 style="margin: 0; color: #1DB954;">Spotify Playlists</h2>
                 <button class="skip-btn" onclick="togglePlaylists()" title="Schließen">
                     <svg class="skip-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        <path
+                            d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
                     </svg>
                 </button>
             </div>
             <div style="display: flex; gap: 1rem;">
-                <input type="text" id="playlist-search" style="flex-grow: 1; padding: 0.75rem 1.5rem; border-radius: 999px; border: 1px solid var(--border); background: var(--card-bg); color: white; font-size: 1rem; outline: none;" placeholder="Nach Playlists suchen..." onkeypress="if(event.key === 'Enter') searchPlaylists()">
-                <button onclick="searchPlaylists()" style="padding: 0 1.5rem; background: #1DB954; color: black; border: none; border-radius: 999px; cursor: pointer; font-weight: bold;">Suchen</button>
+                <input type="text" id="playlist-search"
+                    style="flex-grow: 1; padding: 0.75rem 1.5rem; border-radius: 999px; border: 1px solid var(--border); background: var(--card-bg); color: white; font-size: 1rem; outline: none;"
+                    placeholder="Nach Playlists suchen..." onkeypress="if(event.key === 'Enter') searchPlaylists()">
+                <button onclick="searchPlaylists()"
+                    style="padding: 0 1.5rem; background: #1DB954; color: black; border: none; border-radius: 999px; cursor: pointer; font-weight: bold;">Suchen</button>
             </div>
             <div class="playlists-grid" id="playlists-grid">
-                <div style="grid-column: 1/-1; text-align: center; color: #94a3b8; padding: 2rem;">Lade Playlists...</div>
+                <div style="grid-column: 1/-1; text-align: center; color: #94a3b8; padding: 2rem;">Lade Playlists...
+                </div>
             </div>
         </div>
     </div>
@@ -599,7 +634,8 @@
     <!-- Floating Action Button -->
     <button id="spotify-fab" class="spotify-fab hidden" onclick="openPlaylistsModal()" title="Spotify Playlists öffnen">
         <svg class="spotify-logo-fab" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.84.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.56.3z"/>
+            <path
+                d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.84.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.56.3z" />
         </svg>
     </button>
 
@@ -641,16 +677,16 @@
 
             spotifyPlayer.addListener('player_state_changed', state => {
                 if (!state) return;
-                
+
                 const currentTrack = state.track_window.current_track;
                 if (currentTrack) {
                     isStartingPlayback = false; // Reset loading state
-                    
+
                     const trackName = currentTrack.name;
                     const artistName = currentTrack.artists.map(a => a.name).join(', ');
                     const albumArt = currentTrack.album.images[0].url;
                     const isPlaying = !state.paused;
-                    
+
                     updateSpotifyUI({
                         track: trackName,
                         artist: artistName,
@@ -680,7 +716,7 @@
                 .then(response => response.json())
                 .then(data => {
                     const container = document.getElementById('events-container');
-                    
+
                     if (data.last_update) {
                         document.getElementById('last-update').textContent = `(Letztes Update: ${data.last_update})`;
                     }
@@ -709,20 +745,20 @@
                     const days = [];
                     const today = new Date();
                     const dayNames = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
-                    
+
                     for (let i = 0; i < 5; i++) {
                         const d = new Date(today);
                         d.setDate(d.getDate() + i);
-                        
+
                         const dateStr = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.`;
                         let displayName = dayNames[d.getDay()];
-                        
+
                         if (i === 0) {
                             displayName = "Heute";
                         } else if (i === 1) {
                             displayName = "Morgen";
                         }
-                        
+
                         days.push({
                             dateStr: dateStr,
                             displayName: displayName,
@@ -757,12 +793,12 @@
                         } else {
                             day.events.forEach(event => {
                                 const cardClass = 'event-card';
-                                
+
                                 let assigneeHtml = '';
                                 if (event.assignee) {
                                     assigneeHtml = `<div class="event-assignee">wird erledigt von: ${event.assignee}</div>`;
                                 }
-                                
+
                                 html += `
                                     <div class="${cardClass}">
                                         <div class="event-time">${event.time_str}</div>
@@ -774,10 +810,10 @@
                                 `;
                             });
                         }
-                        
+
                         html += `</div>`; // Close day-column
                     });
-                    
+
                     // Only update DOM if HTML changed to prevent flickering
                     if (container.dataset.lastHtml !== html) {
                         const updateDOM = () => {
@@ -813,7 +849,7 @@
         }
 
         function togglePlaySpotify() {
-            fetch('/api/spotify/play_pause', { 
+            fetch('/api/spotify/play_pause', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ device_id: localDeviceId })
@@ -849,19 +885,19 @@
                 document.getElementById('spotify-art').src = data.image;
                 document.getElementById('spotify-track').textContent = data.track;
                 document.getElementById('spotify-artist').textContent = data.artist;
-                
+
                 const slider = document.getElementById('spotify-volume');
                 if (data.volume !== null && document.activeElement !== slider) {
                     slider.value = data.volume;
                 }
-                
+
                 const playIcon = document.getElementById('play-pause-icon');
                 if (playIcon) {
                     playIcon.innerHTML = data.is_playing ? '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>' : '<path d="M8 5v14l11-7z"/>';
                 }
-                
+
                 footer.classList.add('visible');
-                if(fab) fab.classList.add('hidden');
+                if (fab) fab.classList.add('hidden');
             } else {
                 if (isStartingPlayback) {
                     authContainer.style.display = 'none';
@@ -870,10 +906,10 @@
                     document.getElementById('spotify-artist').textContent = 'Bitte warten';
                     document.getElementById('spotify-art').src = 'https://www.scdn.co/i/_global/twitter_card-default.jpg';
                     footer.classList.add('visible');
-                    if(fab) fab.classList.add('hidden');
+                    if (fab) fab.classList.add('hidden');
                 } else if (!footer.classList.contains('expanded')) {
                     footer.classList.remove('visible');
-                    if(fab) fab.classList.remove('hidden');
+                    if (fab) fab.classList.remove('hidden');
                 }
             }
         }
@@ -887,7 +923,7 @@
                         document.getElementById('spotify-auth-container').style.display = 'block';
                         document.getElementById('spotify-play-container').style.display = 'none';
                         document.getElementById('spotify-footer').classList.add('visible');
-                        if(document.getElementById('spotify-fab')) document.getElementById('spotify-fab').classList.add('hidden');
+                        if (document.getElementById('spotify-fab')) document.getElementById('spotify-fab').classList.add('hidden');
                     } else {
                         if (wasAuthRequired) {
                             window.location.reload();
@@ -904,10 +940,10 @@
             const footer = document.getElementById('spotify-footer');
             const fab = document.getElementById('spotify-fab');
             const isExpanded = footer.classList.toggle('expanded');
-            
+
             if (isExpanded) {
                 footer.classList.add('visible');
-                if(fab) fab.classList.add('hidden');
+                if (fab) fab.classList.add('hidden');
                 searchPlaylists('');
             } else {
                 // Trigger a refresh to decide if it should stay visible
@@ -917,7 +953,7 @@
 
         // Backward compatibility
         function openPlaylistsModal() { togglePlaylists(); }
-        function closePlaylistsModal() { 
+        function closePlaylistsModal() {
             document.getElementById('spotify-footer').classList.remove('expanded');
         }
 
@@ -925,7 +961,7 @@
             const query = document.getElementById('playlist-search').value;
             const grid = document.getElementById('playlists-grid');
             grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #94a3b8;">Lade...</div>';
-            
+
             fetch('/api/spotify/playlists?q=' + encodeURIComponent(query))
                 .then(res => res.json())
                 .then(data => {
@@ -961,25 +997,25 @@
             isStartingPlayback = true;
             // Force footer to stay visible during start
             document.getElementById('spotify-footer').classList.add('visible');
-            
+
             fetch('/api/spotify/play_playlist', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ uri: uri, device_id: localDeviceId })
             })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    closePlaylistsModal();
-                    // Longer timeout for the first update
-                    setTimeout(updateSpotify, 2500);
-                    // Safety reset after 10 seconds if still nothing
-                    setTimeout(() => { isStartingPlayback = false; }, 10000);
-                } else {
-                    isStartingPlayback = false;
-                    alert('Fehler beim Abspielen: ' + data.error);
-                }
-            });
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        closePlaylistsModal();
+                        // Longer timeout for the first update
+                        setTimeout(updateSpotify, 2500);
+                        // Safety reset after 10 seconds if still nothing
+                        setTimeout(() => { isStartingPlayback = false; }, 10000);
+                    } else {
+                        isStartingPlayback = false;
+                        alert('Fehler beim Abspielen: ' + data.error);
+                    }
+                });
         }
 
         // Check Spotify every 5 seconds
@@ -987,4 +1023,5 @@
         updateSpotify();
     </script>
 </body>
+
 </html>
