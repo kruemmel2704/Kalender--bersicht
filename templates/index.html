@@ -222,6 +222,36 @@
             font-weight: 400;
         }
 
+        .event-location {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-top: 0.25rem;
+        }
+
+        .event-location svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+            flex-shrink: 0;
+        }
+
+        .travel-badge {
+            display: inline-flex;
+            align-items: center;
+            background-color: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            padding: 0.15rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            white-space: nowrap;
+        }
+
         .no-events {
             text-align: center;
             padding: 4rem 2rem;
@@ -803,11 +833,27 @@
                                     assigneeHtml = `<div class="event-assignee">wird erledigt von: ${event.assignee}</div>`;
                                 }
 
+                                let locationHtml = '';
+                                if (event.location) {
+                                    let travelHtml = '';
+                                    if (event.travel_time) {
+                                        travelHtml = `<span class="travel-badge" title="Fahrtzeit inkl. Verkehr ab Boppstraße 28, Mainz">🚗 ${event.travel_time}</span>`;
+                                    }
+                                    locationHtml = `
+                                        <div class="event-location" title="${event.location}">
+                                            <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                                            <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;">${event.location}</span>
+                                            ${travelHtml}
+                                        </div>
+                                    `;
+                                }
+
                                 html += `
                                     <div class="${cardClass}">
                                         <div class="event-time">${event.time_str}</div>
                                         <div class="event-details">
                                             <div class="event-title">${event.summary}</div>
+                                            ${locationHtml}
                                             ${assigneeHtml}
                                         </div>
                                     </div>

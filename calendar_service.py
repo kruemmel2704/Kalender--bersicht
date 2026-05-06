@@ -1,6 +1,7 @@
 import os
 import time
 import threading
+import urllib.parse
 from datetime import datetime, date, timedelta
 import requests
 from icalendar import Calendar
@@ -20,6 +21,44 @@ week_events = []
 week_birthdays = []
 today_birthday_names = []
 last_update = None
+
+travel_time_cache = {}
+CACHE_TTL = 600
+
+def get_travel_time(destination):
+    api_key = os.getenv("GOOGLE_MAPS_API_KEY")
+    if not api_key or not destination:
+        return None
+    
+    now = time.time()
+    if destination in travel_time_cache:
+        cached = travel_time_cache[destination]
+        if now - cached["timestamp"] < CACHE_TTL:
+            return cached["duration_text"]
+            
+    origin = "Boppstraße 28, 55118 Mainz"
+    origin_enc = urllib.parse.quote(origin)
+    dest_enc = urllib.parse.quote(destination)
+    
+    url = f"https://maps.googleapis.com/maps/api/distancematrix/json?origins={origin_enc}&destinations={dest_enc}&departure_time=now&key={api_key}&language=de"
+    
+    try:
+        response = requests.get(url, timeout=5)
+        data = response.json()
+        if data.get("status") == "OK":
+            element = data["rows"][0]["elements"][0]
+            if element.get("status") == "OK":
+                if "duration_in_traffic" in element:
+                    duration = element["duration_in_traffic"]["text"]
+                else:
+                    duration = element["duration"]["text"]
+                
+                travel_time_cache[destination] = {"duration_text": duration, "timestamp": now}
+                return duration
+    except Exception as e:
+        print(f"Fehler bei Google Maps API für {destination}: {e}")
+        
+    return None
 
 def fetch_calendar_data():
     global week_events, week_birthdays, today_birthday_names, last_update
@@ -49,6 +88,11 @@ def fetch_calendar_data():
                     end_dt = event.get("DTEND").dt if event.get("DTEND") else None
                     summary = str(event.get("SUMMARY", "Kein Titel"))
                     description = str(event.get("DESCRIPTION", ""))
+                    location = str(event.get("LOCATION", "")).strip()
+                    
+                    travel_time = None
+                    if location:
+                        travel_time = get_travel_time(location)
                     
                     assignee = None
                     match = re.search(r'\$bearbeiter\s*:?\s*(.+)', description, re.IGNORECASE)
@@ -97,7 +141,9 @@ def fetch_calendar_data():
                         "start_timestamp": start_timestamp,
                         "is_past_day": is_past_day,
                         "event_date_iso": event_date.isoformat(),
-                        "assignee": assignee
+                        "assignee": assignee,
+                        "location": location,
+                        "travel_time": travel_time
                     })
                 
                 # Sort events chronologically
