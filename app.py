@@ -1,5 +1,6 @@
 import os
 from flask import Flask, render_template, jsonify, send_from_directory
+from cert_manager import ensure_certificates
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -32,4 +33,5 @@ def serve_sw():
     return send_from_directory('static', 'sw.js')
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5000, use_reloader=False, ssl_context="adhoc")
+    cert_file, key_file = ensure_certificates()
+    app.run(debug=True, host="0.0.0.0", port=5000, use_reloader=False, ssl_context=(cert_file, key_file))
