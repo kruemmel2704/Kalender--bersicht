@@ -1,0 +1,16 @@
+{
+  "name": "Wochenplan",
+  "short_name": "Wochenplan",
+  "description": "Wochenplan und Kalender Dashboard",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#102a4e",
+  "theme_color": "#102a4e",
+  "icons": [
+    {
+      "src": "/static/logo.png",
+      "type": "image/png",
+      "sizes": "192x192 512x512"
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, send_from_directory
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -22,6 +22,14 @@ def index():
 @app.route("/api/events")
 def get_events():
     return jsonify(get_calendar_data())
+
+@app.route('/manifest.json')
+def serve_manifest():
+    return send_from_directory('static', 'manifest.json')
+
+@app.route('/sw.js')
+def serve_sw():
+    return send_from_directory('static', 'sw.js')
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000, use_reloader=False, ssl_context="adhoc")
