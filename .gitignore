@@ -4,5 +4,5 @@ __pycache__/
 *.pyc
 .env
 .DS_Store
-cert_172.26.153.1.pem
-key_172.26.153.1.pem
+cert_*.pem
+key_*.pem
