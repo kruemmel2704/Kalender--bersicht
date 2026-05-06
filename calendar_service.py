@@ -34,31 +34,47 @@ def get_travel_time(destination):
     if destination in travel_time_cache:
         cached = travel_time_cache[destination]
         if now - cached["timestamp"] < CACHE_TTL:
-            return cached["duration_text"]
+            return cached["data"]
             
     origin = "Boppstraße 28, 55118 Mainz"
     origin_enc = urllib.parse.quote(origin)
     dest_enc = urllib.parse.quote(destination)
     
-    url = f"https://maps.googleapis.com/maps/api/distancematrix/json?origins={origin_enc}&destinations={dest_enc}&departure_time=now&key={api_key}&language=de"
+    result = {"driving": None, "walking": None}
     
+    # 1. Fahrtzeit (Driving)
+    url_driving = f"https://maps.googleapis.com/maps/api/distancematrix/json?origins={origin_enc}&destinations={dest_enc}&departure_time=now&key={api_key}&language=de"
     try:
-        response = requests.get(url, timeout=5)
+        response = requests.get(url_driving, timeout=5)
         data = response.json()
         if data.get("status") == "OK":
             element = data["rows"][0]["elements"][0]
             if element.get("status") == "OK":
                 if "duration_in_traffic" in element:
-                    duration = element["duration_in_traffic"]["text"]
+                    result["driving"] = element["duration_in_traffic"]["text"]
                 else:
-                    duration = element["duration"]["text"]
-                
-                travel_time_cache[destination] = {"duration_text": duration, "timestamp": now}
-                return duration
+                    result["driving"] = element["duration"]["text"]
     except Exception as e:
-        print(f"Fehler bei Google Maps API für {destination}: {e}")
+        print(f"Fehler bei Google Maps API (Driving) für {destination}: {e}")
         
-    return None
+    # 2. Fußweg (Walking) - nur für 55118 und 55116
+    if "55118" in destination or "55116" in destination:
+        url_walking = f"https://maps.googleapis.com/maps/api/distancematrix/json?origins={origin_enc}&destinations={dest_enc}&mode=walking&key={api_key}&language=de"
+        try:
+            response = requests.get(url_walking, timeout=5)
+            data = response.json()
+            if data.get("status") == "OK":
+                element = data["rows"][0]["elements"][0]
+                if element.get("status") == "OK":
+                    result["walking"] = element["duration"]["text"]
+        except Exception as e:
+            print(f"Fehler bei Google Maps API (Walking) für {destination}: {e}")
+            
+    if not result["driving"] and not result["walking"]:
+        return None
+        
+    travel_time_cache[destination] = {"data": result, "timestamp": now}
+    return result
 
 def fetch_calendar_data():
     global week_events, week_birthdays, today_birthday_names, last_update

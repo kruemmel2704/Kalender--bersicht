@@ -258,6 +258,12 @@
             white-space: nowrap;
         }
 
+        .walk-badge {
+            background-color: rgba(59, 130, 246, 0.15);
+            color: #3b82f6;
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
         .no-events {
             text-align: center;
             padding: 4rem 2rem;
@@ -843,7 +849,12 @@
                                 if (event.location) {
                                     let travelHtml = '';
                                     if (event.travel_time) {
-                                        travelHtml = `<span class="travel-badge" title="Fahrtzeit inkl. Verkehr ab Boppstraße 28, Mainz">🚗 ${event.travel_time}</span>`;
+                                        if (event.travel_time.driving) {
+                                            travelHtml += `<span class="travel-badge" title="Fahrtzeit inkl. Verkehr ab Boppstraße 28, Mainz">🚗 ${event.travel_time.driving}</span>`;
+                                        }
+                                        if (event.travel_time.walking) {
+                                            travelHtml += `<span class="travel-badge walk-badge" title="Fußweg ab Boppstraße 28, Mainz">🚶 ${event.travel_time.walking}</span>`;
+                                        }
                                     }
                                     locationHtml = `
                                         <div class="event-location" title="${event.location}">
