@@ -27,16 +27,23 @@
             color: var(--text-color);
             margin: 0;
             padding: 2rem;
-            padding-bottom: 6rem;
+            padding-bottom: 90px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100vh;
+            height: 100vh;
+            box-sizing: border-box;
+            overflow: hidden;
         }
 
         .container {
             max-width: 95vw;
             width: 100%;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            min-height: 0;
+            position: relative;
         }
 
         .header-area {
@@ -109,12 +116,64 @@
             }
         }
 
+        .events-viewport {
+            width: 100%;
+            flex-grow: 1;
+            overflow-y: auto;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none;  /* IE and Edge */
+            min-height: 0;
+            position: relative;
+            padding-bottom: 1rem;
+        }
+
+        .events-viewport::-webkit-scrollbar {
+            display: none; /* Chrome, Safari and Opera */
+        }
+
         .events-list {
             display: flex;
             flex-direction: row;
             gap: 1rem;
             width: 100%;
-            padding-bottom: 1rem;
+        }
+
+        .expand-action-container {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 50;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .expand-action-container.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .scroll-more-btn {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 9999px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .scroll-more-btn:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.6);
         }
 
         .day-column {
@@ -613,8 +672,16 @@
             <span>Live Sync <span id="last-update"></span></span>
         </div>
 
-        <div class="events-list" id="events-container">
-            <div class="no-events">Lade Termine...</div>
+        <div class="events-viewport" id="events-viewport">
+            <div class="events-list" id="events-container">
+                <div class="no-events">Lade Termine...</div>
+            </div>
+        </div>
+
+        <div class="expand-action-container" id="expand-action-container">
+            <button class="scroll-more-btn" id="scroll-more-btn" onclick="toggleScrollEvents()">
+                <span>Weitere Termine zeigen</span>
+            </button>
         </div>
     </div>
 
@@ -708,6 +775,84 @@
     <script src="https://sdk.scdn.co/spotify-player.js"></script>
     <script>
         let isStartingPlayback = false;
+        let scrollInactivityTimer = null;
+        let isEventsScrolledDown = false;
+
+        function checkOverflow() {
+            const viewport = document.getElementById('events-viewport');
+            const actionContainer = document.getElementById('expand-action-container');
+            if (!viewport || !actionContainer) return;
+            
+            if (viewport.scrollHeight > viewport.clientHeight + 20 && !isEventsScrolledDown) {
+                actionContainer.classList.add('visible');
+            } else {
+                if (!isEventsScrolledDown) {
+                    actionContainer.classList.remove('visible');
+                }
+            }
+        }
+
+        function toggleScrollEvents() {
+            const viewport = document.getElementById('events-viewport');
+            const btnSpan = document.getElementById('scroll-more-btn').querySelector('span');
+            
+            if (!isEventsScrolledDown) {
+                viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
+                isEventsScrolledDown = true;
+                if(btnSpan) btnSpan.textContent = 'Zurück zu den nächsten Terminen';
+                resetScrollInactivityTimer();
+            } else {
+                viewport.scrollTo({ top: 0, behavior: 'smooth' });
+                isEventsScrolledDown = false;
+                if(btnSpan) btnSpan.textContent = 'Weitere Termine zeigen';
+                clearTimeout(scrollInactivityTimer);
+                checkOverflow();
+            }
+        }
+
+        function resetScrollInactivityTimer() {
+            if (!isEventsScrolledDown) return;
+            
+            clearTimeout(scrollInactivityTimer);
+            scrollInactivityTimer = setTimeout(() => {
+                const viewport = document.getElementById('events-viewport');
+                if (viewport) {
+                    viewport.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+                isEventsScrolledDown = false;
+                const btnSpan = document.getElementById('scroll-more-btn')?.querySelector('span');
+                if (btnSpan) btnSpan.textContent = 'Weitere Termine zeigen';
+                checkOverflow();
+            }, 15000); // 15 seconds
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const viewport = document.getElementById('events-viewport');
+            if (viewport) {
+                viewport.addEventListener('scroll', () => {
+                    const btnSpan = document.getElementById('scroll-more-btn')?.querySelector('span');
+                    if (viewport.scrollTop > 50) {
+                        isEventsScrolledDown = true;
+                        if (btnSpan) btnSpan.textContent = 'Zurück zu den nächsten Terminen';
+                        document.getElementById('expand-action-container').classList.add('visible');
+                        resetScrollInactivityTimer();
+                    } else {
+                        isEventsScrolledDown = false;
+                        if (btnSpan) btnSpan.textContent = 'Weitere Termine zeigen';
+                        clearTimeout(scrollInactivityTimer);
+                        checkOverflow();
+                    }
+                });
+            }
+            
+            ['mousemove', 'mousedown', 'keypress', 'touchmove'].forEach(evt => {
+                document.addEventListener(evt, () => {
+                    if (isEventsScrolledDown) resetScrollInactivityTimer();
+                }, {passive: true});
+            });
+            
+            window.addEventListener('resize', checkOverflow);
+        });
 
         window.onSpotifyWebPlaybackSDKReady = () => {
             spotifyPlayer = new Spotify.Player({
@@ -865,22 +1010,22 @@
                                     assigneeHtml = `<div class="event-assignee">wird erledigt von: ${event.assignee}</div>`;
                                 }
 
+                                let travelHtml = '';
+                                if (event.travel_time) {
+                                    if (event.travel_time.driving) {
+                                        travelHtml += `<span class="travel-badge" title="Fahrtzeit inkl. Verkehr ab Boppstraße 28, Mainz">🚗 ${event.travel_time.driving}</span>`;
+                                    }
+                                    if (event.travel_time.walking) {
+                                        travelHtml += `<span class="travel-badge walk-badge" title="Fußweg ab Boppstraße 28, Mainz">🚶 ${event.travel_time.walking}</span>`;
+                                    }
+                                }
+
                                 let locationHtml = '';
                                 if (event.location) {
-                                    let travelHtml = '';
-                                    if (event.travel_time) {
-                                        if (event.travel_time.driving) {
-                                            travelHtml += `<span class="travel-badge" title="Fahrtzeit inkl. Verkehr ab Boppstraße 28, Mainz">🚗 ${event.travel_time.driving}</span>`;
-                                        }
-                                        if (event.travel_time.walking) {
-                                            travelHtml += `<span class="travel-badge walk-badge" title="Fußweg ab Boppstraße 28, Mainz">🚶 ${event.travel_time.walking}</span>`;
-                                        }
-                                    }
                                     locationHtml = `
                                         <div class="event-location" title="${event.location}">
                                             <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
                                             <span style="flex: 1; min-width: 0; word-wrap: break-word;">${event.location}</span>
-                                            ${travelHtml}
                                         </div>
                                     `;
                                 }
@@ -890,15 +1035,44 @@
                                     descriptionHtml = `<div class="event-description">${event.description.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>`;
                                 }
 
+                                let phoneHtml = '';
+                                const textToSearch = (event.description || '') + ' ' + (event.summary || '');
+                                const phoneRegex = /(?:(?:\+|00)\d{1,3}[\s\-\/]?|0)[1-9](?:[\s\-\/]?\d){5,14}/g;
+                                const matches = textToSearch.match(phoneRegex);
+                                if (matches) {
+                                    const uniquePhones = new Map();
+                                    matches.forEach(m => {
+                                        if (/^\d{2}[\/\-]\d{2}[\/\-]\d{2,4}$/.test(m.trim())) return;
+                                        const cleanNum = m.replace(/[^\d+]/g, '');
+                                        if (cleanNum.length >= 6 && !uniquePhones.has(cleanNum)) {
+                                            uniquePhones.set(cleanNum, m.trim());
+                                        }
+                                    });
+                                    if (uniquePhones.size > 0) {
+                                        uniquePhones.forEach((formatted, clean) => {
+                                            phoneHtml += `
+                                                <div class="event-location" title="Anrufen: ${formatted}">
+                                                    <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                                                    <a href="tel:${clean}" style="color: #60a5fa; text-decoration: none; flex: 1; margin-top: 0.15rem;" onclick="event.stopPropagation();" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${formatted}</a>
+                                                </div>
+                                            `;
+                                        });
+                                    }
+                                }
+
                                 const hasDescClass = event.description ? 'has-description' : '';
                                 const onClickAttr = event.description ? `onclick="this.classList.toggle('expanded')"` : '';
 
                                 html += `
                                     <div class="${cardClass} ${hasDescClass}" ${onClickAttr}>
-                                        <div class="event-time">${event.time_str}</div>
+                                        <div style="display: flex; flex-direction: column; gap: 0.4rem; flex-shrink: 0; min-width: 75px; align-items: flex-start;">
+                                            <div class="event-time" style="min-width: auto; margin-top: 0;">${event.time_str}</div>
+                                            ${travelHtml}
+                                        </div>
                                         <div class="event-details">
                                             <div class="event-title">${event.summary}</div>
                                             ${locationHtml}
+                                            ${phoneHtml}
                                             ${assigneeHtml}
                                             ${descriptionHtml}
                                         </div>
@@ -915,6 +1089,7 @@
                         const updateDOM = () => {
                             container.innerHTML = html;
                             container.dataset.lastHtml = html;
+                            setTimeout(checkOverflow, 100);
                         };
 
                         if (document.startViewTransition) {
@@ -922,6 +1097,8 @@
                         } else {
                             updateDOM();
                         }
+                    } else {
+                        checkOverflow();
                     }
                 })
                 .catch(error => {
