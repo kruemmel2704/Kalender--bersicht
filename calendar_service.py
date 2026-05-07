@@ -111,9 +111,13 @@ def fetch_calendar_data():
                         travel_time = get_travel_time(location)
                     
                     assignee = None
+                    clean_description = description
                     match = re.search(r'\$bearbeiter\s*:?\s*(.+)', description, re.IGNORECASE)
                     if match:
                         assignee = match.group(1).strip()
+                        clean_description = re.sub(r'\$bearbeiter\s*:?\s*.+', '', clean_description, flags=re.IGNORECASE)
+                    
+                    clean_description = re.sub(r'\n{3,}', '\n\n', clean_description).strip()
                     
                     is_all_day = False
                     # Convert to datetime if it's just a date (all-day event)
@@ -159,7 +163,8 @@ def fetch_calendar_data():
                         "event_date_iso": event_date.isoformat(),
                         "assignee": assignee,
                         "location": location,
-                        "travel_time": travel_time
+                        "travel_time": travel_time,
+                        "description": clean_description
                     })
                 
                 # Sort events chronologically

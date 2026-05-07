@@ -163,6 +163,26 @@
             overflow: hidden;
         }
 
+        .event-card.has-description {
+            cursor: pointer;
+        }
+
+        .event-description {
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px dashed var(--border);
+            font-size: 0.9rem;
+            color: #cbd5e1;
+            white-space: pre-wrap;
+            display: none;
+            word-wrap: break-word;
+            width: 100%;
+        }
+
+        .event-card.expanded .event-description {
+            display: block;
+        }
+
         .event-card.past-day {
             opacity: 0.6;
             filter: grayscale(0.5);
@@ -865,13 +885,22 @@
                                     `;
                                 }
 
+                                let descriptionHtml = '';
+                                if (event.description) {
+                                    descriptionHtml = `<div class="event-description">${event.description.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>`;
+                                }
+
+                                const hasDescClass = event.description ? 'has-description' : '';
+                                const onClickAttr = event.description ? `onclick="this.classList.toggle('expanded')"` : '';
+
                                 html += `
-                                    <div class="${cardClass}">
+                                    <div class="${cardClass} ${hasDescClass}" ${onClickAttr}>
                                         <div class="event-time">${event.time_str}</div>
                                         <div class="event-details">
                                             <div class="event-title">${event.summary}</div>
                                             ${locationHtml}
                                             ${assigneeHtml}
+                                            ${descriptionHtml}
                                         </div>
                                     </div>
                                 `;
