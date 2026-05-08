@@ -117,6 +117,13 @@ def fetch_calendar_data():
                         assignee = match.group(1).strip()
                         clean_description = re.sub(r'\$bearbeiter\s*:?\s*.+', '', clean_description, flags=re.IGNORECASE)
                     
+                    # Remove phone numbers (e.g. +49..., 0171..., 06131...)
+                    clean_description = re.sub(
+                        r'(?i)(?:Telefon|Tel\.?|Mobil|Handy|Rufnummer)?\s*:?\s*(?:\+49|0049|0)[1-9][0-9\s\-\/]{7,15}\b', 
+                        '', 
+                        clean_description
+                    )
+                    
                     clean_description = re.sub(r'\n{3,}', '\n\n', clean_description).strip()
                     
                     is_all_day = False
