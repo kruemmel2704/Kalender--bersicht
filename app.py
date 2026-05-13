@@ -13,8 +13,6 @@ app = Flask(__name__)
 # Register Spotify Blueprint
 app.register_blueprint(spotify_bp)
 
-# Start background thread for fetching calendar
-start_background_thread()
 
 @app.route("/")
 def index():
@@ -34,4 +32,5 @@ def serve_sw():
 
 if __name__ == "__main__":
     cert_file, key_file = ensure_certificates()
+    start_background_thread()
     app.run(debug=True, host="0.0.0.0", port=5000, use_reloader=False, ssl_context=(cert_file, key_file))
