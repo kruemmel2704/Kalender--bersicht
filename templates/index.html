@@ -646,6 +646,152 @@
             height: 32px;
             fill: #1DB954;
         }
+
+        /* Event Modal Styles */
+        .event-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .event-modal-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .event-modal {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transform: translateY(20px);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .event-modal-overlay.visible .event-modal {
+            transform: translateY(0);
+        }
+
+        .event-modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            position: sticky;
+            top: 0;
+            background-color: var(--card-bg);
+            z-index: 10;
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
+        }
+
+        .event-modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            margin: 0;
+            line-height: 1.3;
+        }
+
+        .event-modal-close {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .event-modal-close:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+        }
+
+        .event-modal-body {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .modal-info-row {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+        }
+
+        .modal-info-icon {
+            width: 20px;
+            height: 20px;
+            fill: #60a5fa;
+            flex-shrink: 0;
+            margin-top: 0.15rem;
+        }
+
+        .modal-info-text {
+            color: #cbd5e1;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .modal-description {
+            background-color: rgba(15, 23, 42, 0.4);
+            border-radius: 8px;
+            padding: 1rem;
+            color: #e2e8f0;
+            white-space: pre-wrap;
+            font-size: 0.95rem;
+            border: 1px dashed var(--border);
+            margin-top: 0.5rem;
+        }
+
+        .modal-map-container {
+            margin-top: 1rem;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background-color: rgba(15, 23, 42, 0.4);
+        }
+        
+        .modal-map-header {
+            padding: 0.75rem 1rem;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid var(--border);
+            font-weight: 500;
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .modal-map-iframe {
+            width: 100%;
+            height: 300px;
+            border: 0;
+            display: block;
+        }
     </style>
 </head>
 
@@ -764,6 +910,21 @@
     </div>
 
 
+    <!-- Event Modal -->
+    <div id="event-modal-overlay" class="event-modal-overlay" onclick="closeEventModal(event)">
+        <div class="event-modal" onclick="event.stopPropagation()">
+            <div class="event-modal-header">
+                <h2 id="modal-title" class="event-modal-title">Termin Details</h2>
+                <button class="event-modal-close" onclick="closeEventModal()">
+                    <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+            </div>
+            <div class="event-modal-body" id="modal-body">
+                <!-- Content injected via JS -->
+            </div>
+        </div>
+    </div>
+
     <!-- Floating Action Button -->
     <button id="spotify-fab" class="spotify-fab hidden" onclick="openPlaylistsModal()" title="Spotify Playlists öffnen">
         <svg class="spotify-logo-fab" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -777,6 +938,8 @@
         let isStartingPlayback = false;
         let scrollInactivityTimer = null;
         let isEventsScrolledDown = false;
+        let allEventsMap = new Map();
+        let currentMapsApiKey = null;
 
         function checkOverflow() {
             const viewport = document.getElementById('events-viewport');
@@ -932,6 +1095,11 @@
                         document.getElementById('last-update').textContent = `(Letztes Update: ${data.last_update})`;
                     }
 
+                    if (data.maps_api_key) {
+                        currentMapsApiKey = data.maps_api_key;
+                    }
+                    allEventsMap.clear();
+
                     // Handle today's birthday banner
                     const todayBanner = document.getElementById('today-birthday-banner');
                     if (data.today_birthdays && data.today_birthdays.length > 0) {
@@ -1060,8 +1228,10 @@
                                     }
                                 }
 
-                                const hasDescClass = event.description ? 'has-description' : '';
-                                const onClickAttr = event.description ? `onclick="this.classList.toggle('expanded')"` : '';
+                                const eventId = `evt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                                allEventsMap.set(eventId, event);
+                                const hasDescClass = 'has-description';
+                                const onClickAttr = `onclick="openEventModal('${eventId}')"`;
 
                                 html += `
                                     <div class="${cardClass} ${hasDescClass}" ${onClickAttr}>
@@ -1104,6 +1274,98 @@
                 .catch(error => {
                     console.error('Fehler beim Abrufen der Termine:', error);
                 });
+        }
+
+        function openEventModal(eventId) {
+            const event = allEventsMap.get(eventId);
+            if (!event) return;
+
+            document.getElementById('modal-title').textContent = event.summary || 'Termin';
+            
+            let html = '';
+            
+            // Time & Date
+            html += `
+                <div class="modal-info-row">
+                    <svg class="modal-info-icon" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                    <div class="modal-info-text">
+                        <strong>${event.day_name}, ${event.date_str}</strong><br>
+                        ${event.time_str}
+                    </div>
+                </div>
+            `;
+
+            // Location
+            if (event.location) {
+                html += `
+                    <div class="modal-info-row">
+                        <svg class="modal-info-icon" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                        <div class="modal-info-text">${event.location}</div>
+                    </div>
+                `;
+            }
+
+            // Assignee
+            if (event.assignee) {
+                html += `
+                    <div class="modal-info-row">
+                        <svg class="modal-info-icon" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                        <div class="modal-info-text">Wird erledigt von: <strong>${event.assignee}</strong></div>
+                    </div>
+                `;
+            }
+
+            // Description
+            if (event.description) {
+                html += `
+                    <div class="modal-info-row" style="flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
+                        <div style="font-weight: 600; color: #94a3b8; font-size: 0.9rem;">BESCHREIBUNG</div>
+                        <div class="modal-description">${event.description.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>
+                    </div>
+                `;
+            }
+
+            // Route / Map
+            if (event.location && currentMapsApiKey) {
+                const encodedDest = encodeURIComponent(event.location);
+                const encodedOrigin = encodeURIComponent("Boppstraße 28, 55118 Mainz");
+                let travelHtml = '';
+                if (event.travel_time) {
+                    if (event.travel_time.driving) {
+                         travelHtml += `<span class="travel-badge">🚗 ${event.travel_time.driving}</span>`;
+                    }
+                    if (event.travel_time.walking) {
+                         travelHtml += `<span class="travel-badge walk-badge">🚶 ${event.travel_time.walking}</span>`;
+                    }
+                }
+
+                html += `
+                    <div class="modal-map-container">
+                        <div class="modal-map-header">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
+                            Route
+                            <div style="margin-left: auto; display: flex; gap: 0.5rem;">
+                                ${travelHtml}
+                            </div>
+                        </div>
+                        <iframe
+                            class="modal-map-iframe"
+                            loading="lazy"
+                            allowfullscreen
+                            referrerpolicy="no-referrer-when-downgrade"
+                            src="https://www.google.com/maps/embed/v1/directions?key=${currentMapsApiKey}&origin=${encodedOrigin}&destination=${encodedDest}">
+                        </iframe>
+                    </div>
+                `;
+            }
+
+            document.getElementById('modal-body').innerHTML = html;
+            document.getElementById('event-modal-overlay').classList.add('visible');
+        }
+
+        function closeEventModal(e) {
+            if (e && e.target !== e.currentTarget) return;
+            document.getElementById('event-modal-overlay').classList.remove('visible');
         }
 
         // Fetch events every 10 seconds to reduce load

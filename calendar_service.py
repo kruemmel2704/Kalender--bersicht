@@ -233,5 +233,6 @@ def get_calendar_data():
         "events": week_events,
         "last_update": last_update,
         "today_birthdays": today_birthday_names,
-        "week_birthdays": week_birthdays
+        "week_birthdays": week_birthdays,
+        "maps_api_key": os.getenv("GOOGLE_MAPS_API_KEY")
     }
