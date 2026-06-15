@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wochenplan-cache-v1';
+const CACHE_NAME = 'wochenplan-cache-v2';
 const urlsToCache = [
   '/',
   '/static/logo.svg',
@@ -11,6 +11,20 @@ self.addEventListener('install', event => {
       .then(cache => {
         return cache.addAll(urlsToCache);
       })
+  );
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cache => {
+          if (cache !== CACHE_NAME) {
+            return caches.delete(cache);
+          }
+        })
+      );
+    })
   );
 });
 
