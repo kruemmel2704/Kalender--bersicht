@@ -800,7 +800,7 @@
 
     <div class="container">
         <div class="header-area">
-            <img src="{{ url_for('static', filename='logo.svg') }}" alt="CPM Logo" class="logo"
+            <img src="/static/logo.svg" alt="CPM Logo" class="logo"
                 onerror="this.style.display='none'">
             <h1>Wochenplan</h1>
         </div>
@@ -839,7 +839,7 @@
             </svg>
 
             <div id="spotify-auth-container" style="display: none;">
-                <a href="/login" class="spotify-auth-btn" target="_blank">Mit Spotify verknüpfen</a>
+                <a id="spotify-auth-link" href="/login" class="spotify-auth-btn" target="_blank">Mit Spotify verknüpfen</a>
             </div>
 
             <div id="spotify-play-container" style="display: none; align-items: center; gap: 1rem; flex-grow: 1;">
@@ -933,6 +933,7 @@
         </svg>
     </button>
 
+    <script src="/static/config.js"></script>
     <script src="https://sdk.scdn.co/spotify-player.js"></script>
     <script>
         let isStartingPlayback = false;
@@ -990,6 +991,10 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            const authLink = document.getElementById('spotify-auth-link');
+            if (authLink) {
+                authLink.href = (window.API_ENDPOINT || "") + '/login';
+            }
             const viewport = document.getElementById('events-viewport');
             if (viewport) {
                 viewport.addEventListener('scroll', () => {
@@ -1021,7 +1026,7 @@
             spotifyPlayer = new Spotify.Player({
                 name: 'Kalender Web Player',
                 getOAuthToken: cb => {
-                    fetch('/api/spotify/token')
+                    fetch((window.API_ENDPOINT || "") + '/api/spotify/token')
                         .then(res => res.json())
                         .then(data => {
                             if (data.token) {
@@ -1086,7 +1091,7 @@
         document.getElementById('current-date').textContent = "Heute ist " + new Date().toLocaleDateString('de-DE', options);
 
         function updateEvents() {
-            fetch('/api/events')
+            fetch((window.API_ENDPOINT || "") + '/api/events')
                 .then(response => response.json())
                 .then(data => {
                     const container = document.getElementById('events-container');
@@ -1374,17 +1379,17 @@
 
         // Spotify API functions
         function prevSpotify() {
-            fetch('/api/spotify/previous', { method: 'POST' })
+            fetch((window.API_ENDPOINT || "") + '/api/spotify/previous', { method: 'POST' })
                 .then(() => setTimeout(updateSpotify, 500));
         }
 
         function skipSpotify() {
-            fetch('/api/spotify/next', { method: 'POST' })
+            fetch((window.API_ENDPOINT || "") + '/api/spotify/next', { method: 'POST' })
                 .then(() => setTimeout(updateSpotify, 500));
         }
 
         function togglePlaySpotify() {
-            fetch('/api/spotify/play_pause', {
+            fetch((window.API_ENDPOINT || "") + '/api/spotify/play_pause', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ device_id: localDeviceId })
@@ -1397,7 +1402,7 @@
                     console.log('Volume updated!');
                 });
             }
-            fetch('/api/spotify/volume', {
+            fetch((window.API_ENDPOINT || "") + '/api/spotify/volume', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ volume: parseInt(val) })
@@ -1450,7 +1455,7 @@
         }
 
         function updateSpotify() {
-            fetch('/api/spotify')
+            fetch((window.API_ENDPOINT || "") + '/api/spotify')
                 .then(response => response.json())
                 .then(data => {
                     if (data.auth_required) {
@@ -1497,7 +1502,7 @@
             const grid = document.getElementById('playlists-grid');
             grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #94a3b8;">Lade...</div>';
 
-            fetch('/api/spotify/playlists?q=' + encodeURIComponent(query))
+            fetch((window.API_ENDPOINT || "") + '/api/spotify/playlists?q=' + encodeURIComponent(query))
                 .then(res => res.json())
                 .then(data => {
                     if (data.playlists && data.playlists.length > 0) {
@@ -1533,7 +1538,7 @@
             // Force footer to stay visible during start
             document.getElementById('spotify-footer').classList.add('visible');
 
-            fetch('/api/spotify/play_playlist', {
+            fetch((window.API_ENDPOINT || "") + '/api/spotify/play_playlist', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ uri: uri, device_id: localDeviceId })

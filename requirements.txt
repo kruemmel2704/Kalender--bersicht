@@ -5,3 +5,4 @@ icalendar
 recurring-ical-events
 spotipy==2.23.0
 pyOpenSSL
+flask-cors

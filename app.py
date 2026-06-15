@@ -1,5 +1,6 @@
 import os
 from flask import Flask, render_template, jsonify, send_from_directory
+from flask_cors import CORS
 from cert_manager import ensure_certificates
 from dotenv import load_dotenv
 
@@ -9,6 +10,7 @@ from calendar_service import start_background_thread, get_calendar_data
 from spotify_routes import spotify_bp
 
 app = Flask(__name__)
+CORS(app)
 
 # Register Spotify Blueprint
 app.register_blueprint(spotify_bp)
